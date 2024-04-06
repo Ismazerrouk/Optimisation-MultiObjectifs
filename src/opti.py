@@ -8,6 +8,7 @@ from pymoo.visualization.scatter import Scatter
 import numpy as np
 
 
+#TODO: redefine the problem's class TaskOffloadingProblem
 class TaskOffloadingProblem(Problem):
     def __init__(self, C, B):
         self.C = C  # Cost of executing tasks on nodes
@@ -49,26 +50,35 @@ B = np.random.rand(n_tasks, n_nodes)
 
 problem = TaskOffloadingProblem(C, B)
 
-# Define the algorithm
+# Population size and number of generations
+POP_SIZE = 100  # Increased from 100
+N_GEN = 500  # Increased from 500
+
+# Mutation and crossover probabilities
+crossover_prob = 0.9  # Crossover probability
+mutation_prob = 0.1  # Mutation probability
+
+# Define the algorithm parameters
 algorithm = NSGA2(
-    pop_size=100,
-    n_offsprings=10,
+    pop_size=POP_SIZE,
+    n_offsprings=20,  # Consider adjusting this as well
     sampling=BinaryRandomSampling(),
-    crossover=TwoPointCrossover(prob=0.9),
-    mutation=BitflipMutation(prob=0.1),
+    crossover=TwoPointCrossover(prob=crossover_prob),
+    mutation=BitflipMutation(prob=mutation_prob),
     eliminate_duplicates=True
 )
 
-# Execute the optimization
+# Execute the optimization with the updated number of generations
 res = minimize(
     problem,
     algorithm,
-    ('n_gen', 500),
+    ('n_gen', N_GEN),
     seed=1,
     verbose=False
 )
 
 # Visualize the results
 plot = Scatter()
-plot.add(res.F, color="red")
+plot.add(problem.pareto_front(), plot_type="line", color="black", alpha=0.7)
+plot.add(res.F, facecolor="none", edgecolor="red")
 plot.show()
