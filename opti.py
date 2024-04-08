@@ -3,12 +3,15 @@ from pymoo.algorithms.moo.rvea import RVEA
 from pymoo.util.ref_dirs import get_reference_directions
 from pymoo.util.ref_dirs.energy_layer import LayerwiseRieszEnergyReferenceDirectionFactory
 from pymoo.indicators.hv import HV
+from pymoo.indicators.gd import GD
+from pymoo.indicators.igd import IGD
 # from pymoo.operators.crossover.pntx import TwoPointCrossover
 # from pymoo.operators.mutation.bitflip import BitflipMutation
 # from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 
 # Define the directory for saving plots
@@ -55,38 +58,45 @@ class TaskOffloadingProblem(Problem):
 
 
 # Define your problem instance with the given C and B matrices
-n_tasks = 10
-n_nodes = 5
+n_tasks = 100
+n_nodes = 10
 C = np.random.rand(n_tasks, n_nodes)
 B = np.random.rand(n_tasks, n_nodes)
 
 problem = TaskOffloadingProblem(C, B)
 
 # Population size and number of generations
-POP_SIZE = 100  # Increased from 100
-N_GEN = 500  # Increased from 500
+POP_SIZE = 300
+N_GEN = 500
 
 # Mutation and crossover probabilities
 crossover_prob = 0.9  # Crossover probability
 mutation_prob = 0.1  # Mutation probability
 
 
-# Define the algorithm parameters
+# Calcul de la frontière de Pareto
 
-ref_dirs = get_reference_directions("das-dennis", 2, n_partitions=12)
+def pareto_front():
+    # Define the function for the second objective based on the first objective
+    # This should be adapted based on your problem's objectives
+    f2 = lambda f1: - ((f1/100) ** 0.5 - 1)**2
+    F1_a, F1_b = np.linspace(1, 16, 300), np.linspace(36, 81, 300)
+    F2_a, F2_b = f2(F1_a), f2(F1_b)
 
-# Implementation of the RVEA algorithm
-algorithm = RVEA(ref_dirs)
+    # Combine the objective values into a 2D array
+    return np.column_stack([np.concatenate([F1_a, F1_b]), np.concatenate([F2_a, F2_b])])
 
-# Execute the optimization with the updated number of generations
-res = minimize(
-    problem,
-    algorithm,
-    ('n_gen', N_GEN),
-    seed=1,
-    verbose=False
-)
+def save_plot(figure, title, pareto_front, directory=PLOTS_DIR):
+    # Add the Pareto front to the plot
+    figure.add(pareto_front, label="Pareto-front", color="red")
 
+    # Save the plot to a file
+    filename = f"{title.replace(' ', '_').lower()}.png"
+    filepath = os.path.join(directory, filename)
+    figure.save(filepath)
+    print(f"Plot saved to {filepath}")
+
+pf = pareto_front()
 
 # Riesz s-Energy
 ref_dirs_energy = get_reference_directions("energy", 2, 90, seed=1)
@@ -100,7 +110,13 @@ res_energy = minimize(
 )
 scatter_energy = Scatter(title="Riesz s-Energy")
 scatter_energy.add(ref_dirs_energy)
-scatter_energy.show()
+save_plot(scatter_energy, "Riesz s-Energy", pf)
+
+# Calculate the performance indicator
+hv_energy = HV(ref_point=np.array([1.1, 1.1]))
+hv_value_energy = hv_energy.do(res_energy.F)
+print("Riesz s-Energy Hypervolume: ", hv_value_energy)
+
 
 # Das-Dennis
 ref_dirs_uniform = get_reference_directions("uniform", 2, n_partitions=12)
@@ -112,10 +128,17 @@ res_uniform = minimize(
     seed=1,
     verbose=False
 )
-
 scatter_uniform = Scatter(title="Das-Dennis")
 scatter_uniform.add(ref_dirs_uniform)
-scatter_uniform.show()
+pf = pareto_front()
+save_plot(scatter_uniform, "Das-Dennis")
+
+# Calculate the performance indicator
+hv_uniform = HV(ref_point=np.array([1.1, 1.1]))
+hv_value_uniform = hv_uniform.do(res_uniform.F)
+print("Das-Dennis Hypervolume: ", hv_value_uniform)
+
+
 
 # Multi-layer Approach
 ref_dirs_multi_layer = get_reference_directions(
@@ -133,7 +156,15 @@ res_multi_layer = minimize(
 )
 scatter_multi_layer = Scatter(title="Multi-layer Approach")
 scatter_multi_layer.add(ref_dirs_multi_layer)
-scatter_multi_layer.show()
+pf = pareto_front()
+save_plot(scatter_multi_layer, "Multi-layer Approach")
+
+# Calculate the performance indicator
+hv_multi_layer = HV(ref_point=np.array([1.1, 1.1]))
+hv_value_multi_layer = hv_multi_layer.do(res_multi_layer.F)
+print("Multi-layer Approach Hypervolume: ", hv_value_multi_layer)
+
+
 
 # LayerwiseRieszEnergyReferenceDirectionFactory
 fac = LayerwiseRieszEnergyReferenceDirectionFactory(2, [9, 5, 2, 1])
@@ -148,28 +179,10 @@ res_layer_energy = minimize(
 )
 scatter_layer_energy = Scatter(title="LayerwiseRieszEnergyReferenceDirectionFactory")
 scatter_layer_energy.add(ref_dirs_layer_energy)
-scatter_layer_energy.show()
+pf = pareto_front()
+save_plot(scatter_layer_energy, "LayerwiseRieszEnergyReferenceDirectionFactory")
 
-# Calculate performance metrics
-#ref_point = np.max(problem.pareto_front(), axis=0) * 1.1
-ref_point = np.array([1.2, 1.2])
-ind = HV(ref_point=ref_point)
-print("HV", ind(A))
-
-
-igd = IGD(problem.pareto_front())
-igd_value = igd.calc(res.F)
-print(f"Inverted Generational Distance: {igd_value}")
-
-# A function to save the plots to files
-def save_plot(figure, title, directory=PLOTS_DIR):
-    filename = f"{title.replace(' ', '_').lower()}.png"
-    filepath = os.path.join(directory, filename)
-    figure.save(filepath)
-    print(f"Plot saved to {filepath}")
-
-# Visualize the results
-plot = Scatter(title="RVEA Result")
-plot.add(problem.pareto_front(), plot_type="line", color="black", alpha=0.7)
-plot.add(res.F, facecolor="none", edgecolor="red")
-save_plot(plot, "RVEA Result")
+# Calculate the performance indicator
+hv_layer_energy = HV(ref_point=np.array([1.1, 1.1]))
+hv_value_layer_energy = hv_layer_energy.do(res_layer_energy.F)
+print("LayerwiseRieszEnergyReferenceDirectionFactory Hypervolume: ", hv_value_layer_energy)
