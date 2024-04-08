@@ -1,8 +1,10 @@
-from pymoo import Problem, get_sampling, get_crossover, get_mutation
+from pymoo.core.problem import Problem
+from pymoo.factory get_sampling, get_crossover, get_mutation
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 import numpy as np
+
 
 class TaskOffloadingProblem(Problem):
     def __init__(self, C, B):
@@ -37,9 +39,6 @@ problem = TaskOffloadingProblem(C, B)
 algorithm = NSGA2(
     pop_size=40,
     n_offsprings=10,
-    sampling=get_sampling("bin_random"),
-    crossover=get_crossover("bin_two_point"),
-    mutation=get_mutation("bin_bitflip"),
     eliminate_duplicates=True
 )
 
