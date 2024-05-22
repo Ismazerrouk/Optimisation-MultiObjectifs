@@ -24,6 +24,7 @@ Le problème est formulé avec les paramètres, variables de décision, fonction
 
 - minimiser le coût total : $\min f_2 = \sum_{T_k} (\text{coûtMin}(T_k))$
   - $\text{coûtMin}(T_k)$ : coût minimal d'exécution de la tâche $T_k$
+  
 ![NDSA](images/NDSA.jpg)
 
 ### Contraintes
