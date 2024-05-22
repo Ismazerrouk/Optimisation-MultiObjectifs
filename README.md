@@ -1,10 +1,11 @@
 # Ordonnancement multi-objectif des tâches dans les environnements cloud-fog
-
+![Cloud-fog environment](images/aivazovsky.jpg)
 Notre projet formule un problème d'optimisation multi-objectif pour l'ordonnancement des tâches dans un environnement cloud-fog, en considérant le compromis entre la minimisation du makespan (temps d'exécution total) et le coût total. le problème est modélisé sans agréger les fonctions objectifs, permettant ainsi l'exploration du front de pareto pour des solutions optimales.
 
-## Ontroduction
+## Introduction
 
 L'ordonnancement des tâches dans les environnements cloud-fog consiste à répartir efficacement les tâches sur les différents nœuds de calcul disponibles, en tenant compte des contraintes de ressources et de performance. ce projet se concentre sur l'optimisation de deux objectifs clés : la minimisation du temps d'exécution total (makespan) et la minimisation du coût total. pour résoudre ce problème d'optimisation multi-objectif, nous utilisons l'algorithme génétique de tri non dominé ii (nsga-ii), implémenté en python sans l'utilisation de bibliothèques externes.
+![Cloud-fog environment](images/fog.jpg)
 
 ## Formulation du problème
 
@@ -23,6 +24,7 @@ Le problème est formulé avec les paramètres, variables de décision, fonction
 
 - minimiser le coût total : $\min f_2 = \sum_{T_k} (\text{coûtMin}(T_k))$
   - $\text{coûtMin}(T_k)$ : coût minimal d'exécution de la tâche $T_k$
+![NDSA](images/NDSA.png)
 
 ### Contraintes
 
