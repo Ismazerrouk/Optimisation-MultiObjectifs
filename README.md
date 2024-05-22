@@ -24,7 +24,7 @@ Le problème est formulé avec les paramètres, variables de décision, fonction
 
 - minimiser le coût total : $\min f_2 = \sum_{T_k} (\text{coûtMin}(T_k))$
   - $\text{coûtMin}(T_k)$ : coût minimal d'exécution de la tâche $T_k$
-![NDSA](images/NDSA.png)
+![NDSA](images/NDSA.jpg)
 
 ### Contraintes
 
@@ -37,6 +37,7 @@ la variable de décision binaire $x_{ki}$ indique si la tâche $T_k$ est exécut
 ## Approche de résolution
 
 Le problème est résolu en utilisant l'algorithme génétique de tri non dominé ii (nsga-ii), une technique d'optimisation multi-objectif qui explore le front de pareto sans agréger les fonctions objectifs. nsga-ii est un algorithme évolutionnaire qui maintient une population de solutions potentielles et les améliore itérativement en appliquant des opérateurs de sélection, de croisement et de mutation. l'algorithme utilise le concept de dominance de pareto pour classer les solutions et favoriser la diversité dans la population.
+![NDSA](images/tournament_selection_GA.jpg)
 
 Dans ce projet, nous implémentons nsga-ii en python sans utiliser de bibliothèques externes. les principaux composants de l'algorithme sont :
 
